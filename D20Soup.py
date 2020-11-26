@@ -9,7 +9,12 @@ import os
 
 def download_file(url, filename='', foldername='misc', copy=0):
     try:
-        if os.path.isfile(filename):
+        if os.path.isdir(foldername):
+            pass
+        else:
+            os.makedirs(foldername)
+
+        if os.path.isfile(foldername + "/" + filename):
             copy = copy + 1
             filename = filename + str(copy)
             print ("File exist... renaming to: ", filename)
@@ -17,12 +22,13 @@ def download_file(url, filename='', foldername='misc', copy=0):
         else:
             pass
         
-        if os.path.isdir(foldername):
-            pass
-        else:
-            os.makedirs(foldername)
 
-        print("Downloading ", filename, " into ", foldername, "from : ", url)
+
+        
+        # So that requests saves the file into the right folder...
+        # append the foldername to the filename
+        filename = foldername + "/" + filename
+        print("Downloading ", filename, " from: ", url)
         with requests.get(url) as req:
             with open(filename, 'wb') as f:
                 for chunk in req.iter_content(chunk_size=8192):
