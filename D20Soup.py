@@ -21,10 +21,7 @@ def download_file(url, filename='', foldername='misc', copy=0):
             download_file(url, filename=filename, foldername=foldername, copy=copy)
         else:
             pass
-        
-
-
-        
+                
         # So that requests saves the file into the right folder...
         # append the foldername to the filename
         filename = foldername + "/" + filename
@@ -38,9 +35,6 @@ def download_file(url, filename='', foldername='misc', copy=0):
     except Exception as e:
         print(e)
         return None
-
-def bar_custom(current, total, width=80):
-    print("Downloading: %d%% [%d / %d] bytes" % (current / total * 100, current, total))
 
 # Open our asset library html file
 with open("assetLibrary.html") as fp:
