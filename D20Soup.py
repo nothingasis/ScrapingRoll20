@@ -4,28 +4,60 @@ except ImportError:
     from bs4 import BeautifulSoup
 
 import re
+import requests
+import os
 
+def download_file(url, filename='', foldername='misc', copy=0):
+    try:
+        if os.path.isfile(filename):
+            copy = copy + 1
+            filename = filename + str(copy)
+            print ("File exist... renaming to: ", filename)
+            download_file(url, filename=filename, foldername=foldername, copy=copy)
+        else:
+            pass
+        
+        if os.path.isdir(foldername):
+            pass
+        else:
+            os.makedirs(foldername)
+
+        print("Downloading ", filename, " into ", foldername, "from : ", url)
+        with requests.get(url) as req:
+            with open(filename, 'wb') as f:
+                for chunk in req.iter_content(chunk_size=8192):
+                    if chunk:
+                        f.write(chunk)
+            return filename
+    except Exception as e:
+        print(e)
+        return None
+
+def bar_custom(current, total, width=80):
+    print("Downloading: %d%% [%d / %d] bytes" % (current / total * 100, current, total))
+
+# Open our asset library html file
 with open("assetLibrary.html") as fp:
     soup = BeautifulSoup(fp, 'html.parser')
-    # print soup.find_all(match_class(["feeditemcontent", "cxfeeditemcontent"]))
-    for folder in soup.find_all("li", {"class": "dd-folder"}):
-        # Get the parent folder.
-        folder_name = folder.find("div", {"class": "folder-title"})
-        print("Folder:", folder_name.text)
 
-        # Get all the children
+    # Traverse through each collapsible folder in the side-pane
+    for folder in soup.find_all("li", {"class": "dd-folder"}):
+        # Get the folder name.
+        folder_name = folder.find("div", {"class": "folder-title"}).text
+
+        # Get all the items inside the folder
         listItems = folder.find_all("li", {"class": "library-item"})
         for item in listItems:
+            # Get the filename
             name = item.find("div", {"class": "namecontainer"})
-            print ("{0}".format(name.text))
+            name = ("{0}".format(name.text))
+
+            # Get the file url with regex
             regex = r"data-fullsizeurl=\"(https:\/\/s3\.amazonaws\.com\/files\.d20\.io\/marketplace\/\d+\/[\d\w-]+\/max.png\?\d+)\""
-
-            test_str = "data-fullsizeurl=\"https://s3.amazonaws.com/files.d20.io/marketplace/14665/l6B57dHOGekSHDGEnE4UGg/max.png?1366969146\""
-
+            test_str = str(item)
             matches = re.finditer(regex, test_str)
-
             for matchNum, match in enumerate(matches, start=1):
                 for groupNum in range(0, len(match.groups())):
                     groupNum = groupNum + 1
                     url= ("{group}".format(groupNum = groupNum, start = match.start(groupNum), end = match.end(groupNum), group = match.group(groupNum)))
-                    print(url)
+                    download_file(url=url, filename=name, foldername=folder_name)
